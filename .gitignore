@@ -1,0 +1,66 @@
+## Regarding calendar-backend
+
+# compiled output
+calendar-backend/dist
+calendar-backend/node_modules
+
+# Logs
+calendar-backend/logs
+calendar-backend/*.log
+calendar-backend/npm-debug.log*
+calendar-backend/pnpm-debug.log*
+calendar-backend/yarn-debug.log*
+calendar-backend/yarn-error.log*
+calendar-backend/lerna-debug.log*
+
+# OS
+calendar-backend/.DS_Store
+
+# Tests
+calendar-backend/coverage
+calendar-backend/.nyc_output
+
+# IDEs and editors
+calendar-backend/.idea
+calendar-backend/.project
+calendar-backend/.classpath
+calendar-backend/.c9/
+calendar-backend/*.launch
+calendar-backend/.settings/
+calendar-backend/*.sublime-workspace
+
+# IDE - VSCode
+calendar-backend/.vscode/*
+calendar-backend/!.vscode/settings.json
+calendar-backend/!.vscode/tasks.json
+calendar-backend/!.vscode/launch.json
+calendar-backend/!.vscode/extensions.json
+
+
+
+## Regarding calendar-frontend
+
+# Logs
+calendar-frontend/logs
+calendar-frontend/*.log
+calendar-frontend/npm-debug.log*
+calendar-frontend/yarn-debug.log*
+calendar-frontend/yarn-error.log*
+calendar-frontend/pnpm-debug.log*
+calendar-frontend/lerna-debug.log*
+
+calendar-frontend/node_modules
+calendar-frontend/dist
+calendar-frontend/dist-ssr
+calendar-frontend/*.local
+
+# Editor directories and files
+calendar-frontend/.vscode/*
+calendar-frontend/!.vscode/extensions.json
+calendar-frontend/.idea
+calendar-frontend/.DS_Store
+calendar-frontend/*.suo
+calendar-frontend/*.ntvs*
+calendar-frontend/*.njsproj
+calendar-frontend/*.sln
+calendar-frontend/*.sw?
