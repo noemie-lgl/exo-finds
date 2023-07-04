@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Controller('users')
 export class UsersController {
@@ -15,7 +16,7 @@ export class UsersController {
   //get user by id
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     } else {
@@ -26,6 +27,9 @@ export class UsersController {
   //create user
   @Post()
   async create(@Body() user: User): Promise<User> {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(user.password, salt);
+    user.password = hashedPassword;
     return this.usersService.create(user);
   }
 
@@ -39,7 +43,7 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<any> {
     //handle error if user does not exist
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }

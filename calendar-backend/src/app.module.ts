@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { EventsModule } from './events/events.module';
       autoLoadEntities: true
     }),
     UsersModule,
-    EventsModule
+    EventsModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

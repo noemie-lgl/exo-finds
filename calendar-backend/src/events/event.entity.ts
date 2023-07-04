@@ -12,6 +12,18 @@ export class Event {
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
     updatedAt: Date;
 
+    @Column({type: 'varchar', length: 255})
+    dateStart: Date;
+
+    @Column({type: 'varchar', length: 255})
+    dateEnd: Date;
+
+    @Column({type: 'varchar', length: 255})
+    summary: string;
+
+    @Column({type: 'varchar', length: 255})
+    description: string;
+
     @ManyToOne(type => User, (user) => user.events)
-    user: User
+    user: User;
 }
