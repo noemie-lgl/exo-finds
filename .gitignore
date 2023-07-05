@@ -50,15 +50,19 @@ calendar-frontend/pnpm-debug.log*
 calendar-frontend/lerna-debug.log*
 
 calendar-frontend/node_modules
+calendar-frontend/.DS_Store
 calendar-frontend/dist
 calendar-frontend/dist-ssr
+calendar-frontend/coverage
 calendar-frontend/*.local
+
+calendar-frontend/cypress/videos/
+calendar-frontend/cypress/screenshots/
 
 # Editor directories and files
 calendar-frontend/.vscode/*
 calendar-frontend/!.vscode/extensions.json
 calendar-frontend/.idea
-calendar-frontend/.DS_Store
 calendar-frontend/*.suo
 calendar-frontend/*.ntvs*
 calendar-frontend/*.njsproj

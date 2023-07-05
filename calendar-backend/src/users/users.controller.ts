@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } fr
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +26,7 @@ export class UsersController {
   }
 
   //create user
+  @Public()
   @Post()
   async create(@Body() user: User): Promise<User> {
     const salt = await bcrypt.genSalt();
