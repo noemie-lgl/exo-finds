@@ -1,15 +1,25 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import RegisterView from '@/views/RegisterView.vue'
+import Vue from "vue";
+import VueRouter from "vue-router";
+import RegisterView from "../views/RegisterView.vue";
+import CalendarView from "../views/CalendarView.vue";
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+Vue.use(VueRouter);
+
+const router = new VueRouter({
+  mode: "history",
+  base: import.meta.env.BASE_URL,
   routes: [
     {
-      path: '/',
-      name: 'register',
-      component: RegisterView
+      path: "/",
+      name: "Register",
+      component: RegisterView,
     },
-  ]
-})
+    {
+      path: "/calendar",
+      name: "Calendar",
+      component: CalendarView,
+    },
+  ],
+});
 
-export default router
+export default router;
