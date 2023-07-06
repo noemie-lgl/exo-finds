@@ -17,7 +17,7 @@ export class UsersController {
   //get user by id
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.findOneById(id);
+    const user = await this.usersService.findOne(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     } else {
@@ -45,7 +45,7 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<any> {
     //handle error if user does not exist
-    const user = await this.usersService.findOneById(id);
+    const user = await this.usersService.findOne(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }

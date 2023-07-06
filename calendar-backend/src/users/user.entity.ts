@@ -13,9 +13,6 @@ export class User {
     updatedAt: Date;
 
     @Column({type: 'varchar', length: 255})
-    username: string;
-
-    @Column({type: 'varchar', length: 255})
     firstName: string;
 
     @Column({type: 'varchar', length: 255})
