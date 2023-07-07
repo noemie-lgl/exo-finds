@@ -18,6 +18,7 @@ export default {
     resetState(state: any) {
       state.firstName = "";
       state.lastName = "";
+      delete axios.defaults.headers.common["Authorization"];
     },
   },
 };
