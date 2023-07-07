@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './event.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { UsersModule } from 'src/users/users.module';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Event])],
+  imports: [TypeOrmModule.forFeature([Event]), UsersModule],
   controllers: [EventsController],
   providers: [
-    EventsService,
+    EventsService
   ]
 })
 export class EventsModule {}

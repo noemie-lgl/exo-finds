@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Request } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Event } from './event.entity';
 
@@ -6,10 +6,11 @@ import { Event } from './event.entity';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  //get all events
+  //get all events depending on who is asking
   @Get()
-  async findAll(): Promise<Event[]> {
-    return this.eventsService.findAll();
+  async findAllForOneUser(@Request() req): Promise<Event[]> {
+    const userId = req.user.id;
+    return this.eventsService.findAllForOneUser(userId);
   }
 
   //get event by id
@@ -23,10 +24,10 @@ export class EventsController {
     }
   }
 
-  //create event
+  //create event that will be linked to the user sending the request
   @Post()
-  async create(@Body() event: Event): Promise<Event> {
-    return this.eventsService.create(event);
+  async create(@Request() req, @Body() event: Event): Promise<Event> {
+    return this.eventsService.create(event, req.user.id);
   }
 
   //update event

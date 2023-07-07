@@ -3,6 +3,11 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } f
 
 @Entity()
 export class Event {
+
+    constructor(data: Partial<Event>) {
+        Object.assign(this, data);
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -13,10 +18,10 @@ export class Event {
     updatedAt: Date;
 
     @Column({type: 'varchar', length: 255})
-    dateStart: Date;
+    startDate: Date;
 
     @Column({type: 'varchar', length: 255})
-    dateEnd: Date;
+    endDate: Date;
 
     @Column({type: 'varchar', length: 255})
     summary: string;
