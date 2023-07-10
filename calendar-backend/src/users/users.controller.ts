@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
@@ -18,7 +28,9 @@ export class UsersController {
   // to check wether a username already exists
   @Public()
   @Get('username-exists')
-  async findOneWithUsername(@Query('username') username: string): Promise<User> {
+  async findOneWithUsername(
+    @Query('username') username: string,
+  ): Promise<User> {
     const user = await this.usersService.findOneByUsername(username);
     return user;
   }
@@ -46,13 +58,13 @@ export class UsersController {
 
   //update user
   @Put(':id')
-  async update (@Param('id') id: string, @Body() user: User): Promise<any> {
+  async update(@Param('id') id: string, @Body() user: User): Promise<User> {
     return this.usersService.update(id, user);
   }
 
   //delete user
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<any> {
+  async delete(@Param('id') id: string): Promise<void> {
     //handle error if user does not exist
     const user = await this.usersService.findOneById(id);
     if (!user) {

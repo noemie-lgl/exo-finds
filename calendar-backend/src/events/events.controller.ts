@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  NotFoundException,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Event } from './event.entity';
 
@@ -8,10 +19,15 @@ export class EventsController {
 
   //get all events
   @Get()
-  async findAllForOneUser(@Request() req, @Query('userId') userId?: string): Promise<Event[]> {
-    if (userId) { // a userId is specified, we retrieve all events linked to this userId
+  async findAllForOneUser(
+    @Request() req,
+    @Query('userId') userId?: string,
+  ): Promise<Event[]> {
+    if (userId) {
+      // a userId is specified, we retrieve all events linked to this userId
       return this.eventsService.findAllForOneUser(userId);
-    } else { // a userId is not specified, the user retrieve all events linked to themself
+    } else {
+      // a userId is not specified, the user retrieve all events linked to themself
       return this.eventsService.findAllForOneUser(req.user.id);
     }
   }
@@ -35,13 +51,13 @@ export class EventsController {
 
   //update event
   @Put(':id')
-  async update (@Param('id') id: string, @Body() event: Event): Promise<any> {
+  async update(@Param('id') id: string, @Body() event: Event): Promise<Event> {
     return this.eventsService.update(id, event);
   }
 
   //delete event
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<any> {
+  async delete(@Param('id') id: string): Promise<void> {
     //handle error if event does not exist
     const event = await this.eventsService.findOne(id);
     if (!event) {

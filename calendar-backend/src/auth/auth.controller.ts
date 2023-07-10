@@ -4,13 +4,12 @@ import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
-    @Public()
-    @HttpCode(HttpStatus.OK)
-    @Post('login')
-    signIn(@Body() signInDto: Record<string, any>) { //declare class signInDto
-        return this.authService.signIn(signInDto.username, signInDto.password);
-    }
-
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  signIn(@Body() signInDto: { username: string; password: string }) {
+    return this.authService.signIn(signInDto.username, signInDto.password);
+  }
 }
