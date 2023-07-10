@@ -7,18 +7,20 @@ export default {
     lastName: "",
   }),
   mutations: {
-    setUser(state: any, user: any) {
+    setUser(state: any, username: string) {
       // déclarer les types
-      state.firstName = user.firstName;
-      state.lastName = user.lastName;
+      state.username = username;
+      window.localStorage.setItem("username", username);
     },
     setAccessToken(state: any, accessToken: any) {
+      window.localStorage.setItem("acces_token", accessToken);
       axios.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
     },
     resetState(state: any) {
-      state.firstName = "";
-      state.lastName = "";
+      state.username = "";
       delete axios.defaults.headers.common["Authorization"];
+      window.localStorage.removeItem("acces_token");
+      window.localStorage.removeItem("username");
     },
   },
 };
