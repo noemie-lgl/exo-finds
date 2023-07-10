@@ -18,7 +18,7 @@ In the folder calendar-backend :
 ## To run the frontend
 
 In the folder calendar-frontend :
-- run ``` npm install```
+- run ```npm install```
 - run  ```npm run dev```
 
 ## Brief tour of the app
