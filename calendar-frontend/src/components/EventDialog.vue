@@ -74,7 +74,7 @@ export default Vue.extend({
       try {
         await axios.delete("/events/" + this.updatedEvent.id);
         this.$emit("event-deleted");
-        this.$emit("close-event-dialog");
+        this.closeDialog();
       } catch (error) {
         console.error(error);
       }
@@ -88,7 +88,7 @@ export default Vue.extend({
           description: this.updatedEvent.description,
         };
         await axios.put("/events/" + this.updatedEvent.id, payload);
-        this.$emit("close-event-dialog");
+        this.closeDialog();
       } catch (error) {
         console.error(error);
       }
@@ -96,6 +96,8 @@ export default Vue.extend({
     // notify parent component (CalendarView) that user closed the event dialog
     closeDialog() {
       this.$emit("close-event-dialog");
+      this.$emit("unset-selected-element");
+      this.$emit("reset-current-event");
     },
   },
   watch: {

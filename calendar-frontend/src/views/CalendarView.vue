@@ -77,6 +77,8 @@
               :selectedEvent="currentEvent"
               @close-event-dialog="showEventDialog = false"
               @event-deleted="fetchEvents"
+              @unset-selected-element="selectedElement = null"
+              @reset-current-event="resetCurrentEvent"
             ></EventDialog>
           </v-sheet>
         </v-col>
