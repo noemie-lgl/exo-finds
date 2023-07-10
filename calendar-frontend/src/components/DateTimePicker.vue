@@ -19,11 +19,6 @@
           ></v-text-field>
         </template>
         <v-date-picker v-model="selectedDate" no-title scrollable>
-          <v-spacer></v-spacer>
-          <v-btn text color="primary" @click="showMenu = false">
-            Annuler
-          </v-btn>
-          <v-btn text color="primary" @click="saveDate"> OK </v-btn>
         </v-date-picker>
       </v-menu>
     </v-col>
@@ -38,7 +33,9 @@
 
 <script lang="ts">
 import Vue from "vue";
+import type { PropType } from "vue";
 
+// This component allows the user to select a date and a time
 export default Vue.extend({
   name: "DateTimePicker",
   props: {
@@ -47,7 +44,7 @@ export default Vue.extend({
       required: true,
     },
     dateWithTime: {
-      type: Date,
+      type: Date as PropType<Date>,
       required: true,
     },
   },
@@ -64,40 +61,43 @@ export default Vue.extend({
     };
   },
   mounted: function () {
-    this.selectedDate = new Date(this.dateWithTime).toISOString().substr(0, 10);
-    this.selectedHour =
-      new Date(this.dateWithTime).getHours() >= 10
-        ? new Date(this.dateWithTime).getHours().toString()
-        : "0" + new Date(this.dateWithTime).getHours().toString();
-    this.selectedMinute =
-      new Date(this.dateWithTime).getMinutes() == 0
-        ? "00"
-        : new Date(this.dateWithTime).getMinutes().toString();
+    this.selectedDate = this.dateWithTime.toISOString().substr(0, 10);
+    this.selectedHour = this.formatHour(this.dateWithTime);
+    this.selectedMinute = this.formatMinute(this.dateWithTime);
   },
   methods: {
-    saveDate() {
-      console.log(this.hours);
+    // return hour as a 2-characters string
+    formatHour(dateWithTime: Date) {
+      return dateWithTime.getHours() >= 10
+        ? dateWithTime.getHours().toString()
+        : "0" + dateWithTime.getHours().toString();
     },
+    // return minutes as a 2-characters string
+    formatMinute(dateWithTime: Date) {
+      const minutes =
+        dateWithTime.getMinutes() == 0
+          ? "00"
+          : dateWithTime.getMinutes().toString();
+      if (this.minutes.includes(minutes)) return minutes;
+      else return "00";
+    },
+    // gather a date, an hour and minutes to return a date with time
     generateDate(date: string, hour: string, minute: string) {
-      let newDate = new Date(date);
+      const newDate = new Date(date);
       newDate.setHours(parseInt(hour));
       newDate.setMinutes(parseInt(minute));
       return newDate;
     },
   },
   watch: {
-    dateWithTime(newValue: Date, olValue: Date) {
-      this.selectedDate = newValue.toISOString().substr(0, 10);
-      this.selectedHour =
-        new Date(newValue).getHours() >= 10
-          ? new Date(newValue).getHours().toString()
-          : "0" + new Date(newValue).getHours().toString();
-      this.selectedMinute =
-        new Date(newValue).getMinutes() == 0
-          ? "00"
-          : new Date(newValue).getMinutes().toString();
+    // watch when dateWithTime changes in parent component
+    dateWithTime(newValue: Date) {
+      this.selectedDate = new Date(newValue).toISOString().substr(0, 10);
+      this.selectedHour = this.formatHour(newValue);
+      this.selectedMinute = this.formatMinute(newValue);
     },
-    selectedDate(newValue, olValue) {
+    // notify parent component when the date selected changes
+    selectedDate(newValue: string) {
       const date = this.generateDate(
         newValue,
         this.selectedHour,
@@ -105,7 +105,8 @@ export default Vue.extend({
       );
       this.$emit("date-time-updated", date);
     },
-    selectedHour(newValue, olValue) {
+    // notify parent component when the hour selected changes
+    selectedHour(newValue: string) {
       const date = this.generateDate(
         this.selectedDate,
         newValue,
@@ -113,7 +114,8 @@ export default Vue.extend({
       );
       this.$emit("date-time-updated", date);
     },
-    selectedMinute(newValue, olValue) {
+    // notify parent component when the minute selected changes
+    selectedMinute(newValue: string) {
       const date = this.generateDate(
         this.selectedDate,
         this.selectedHour,

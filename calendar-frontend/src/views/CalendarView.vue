@@ -2,12 +2,6 @@
   <v-row>
     <v-col cols="12">
       <v-toolbar flat>
-        <!--<v-toolbar-title>
-          <v-icon>
-            mdi-weather-sunny
-          </v-icon>
-          {{ "Bonjour " + userName }}
-        </v-toolbar-title>-->
         <v-spacer></v-spacer>
         <v-toolbar-title>
           {{ selectedMonth() }}
@@ -24,7 +18,7 @@
               v-for="item in allUsers"
               :key="item.id"
               :value="item.id"
-              @click="selectUser(item)"
+              @click="fetchEventsOfUser(item)"
             >
               <v-list-item-title>{{
                 item.firstName + " " + item.lastName
@@ -40,8 +34,19 @@
             Vous voyez les événements de
             {{ selectedUser.firstName + " " + selectedUser.lastName }}
           </v-alert>
-          <v-btn @click="showEventMenu = true" color="primary"> Ajouter un événement </v-btn>
-          <v-date-picker v-model="picker" locale="fr-fr" no-title>
+          <v-btn
+            class="add-event-btn"
+            @click="openEventMenu"
+            color="primary"
+          >
+            Ajouter un événement
+          </v-btn>
+          <v-date-picker
+            class="calendar-date-picker"
+            v-model="picker"
+            locale="fr-fr"
+            no-title
+          >
           </v-date-picker>
         </v-col>
         <v-col>
@@ -51,46 +56,22 @@
               :type="type"
               :value="selectedDate"
               :events="events"
-              @click:time="handleEvent"
+              @click:time="handleClick"
               @click:event="openEventDialog"
               locale="fr-fr"
             ></v-calendar>
-            <v-menu
-              v-model="showEventMenu"
-              :close-on-content-click="false"
-              :activator="selectedElement"
-              offset-x
+            <CreateEventMenu
+              :showEventMenu="showEventMenu"
+              :events="events"
+              :nbOfEventsInDB="nbOfEventsInDB"
+              :selectedElement="selectedElement"
+              :currentEvent="currentEvent"
+              @update-nb-of-events-in-db="updateNbOfEventsInDB"
+              @detach-from-selected-element="selectedElement = null"
+              @set-show-event-menu="setShowEventMenu"
+              @reset-current-event="resetCurrentEvent"
             >
-              <v-card min-width="200px">
-                <v-card-title> Nouvel événement </v-card-title>
-                <v-card-text>
-                  <v-form>
-                    <v-text-field label="Titre" v-model="eventMenu.summary" />
-                    <DateTimePicker
-                      label="Début"
-                      :dateWithTime="currentEvent.start"
-                      @date-time-updated="updateNewEventStart"
-                    />
-                    <DateTimePicker
-                      label="Fin"
-                      :dateWithTime="currentEvent.end"
-                      @date-time-updated="updateNewEventEnd"
-                    />
-                    <v-text-field
-                      label="Description"
-                      v-model="eventMenu.description"
-                    />
-                  </v-form>
-                </v-card-text>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn @click="closeEventMenu">
-                    Annuler
-                  </v-btn>
-                  <v-btn color="primary" @click="createEvent"> Enregister </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-menu>
+            </CreateEventMenu>
             <EventDialog
               :showEventDialog="showEventDialog"
               :selectedEvent="currentEvent"
@@ -109,11 +90,18 @@ import Vue from "vue";
 import axios from "axios";
 import DateTimePicker from "../components/DateTimePicker.vue";
 import EventDialog from "../components/EventDialog.vue";
-import type { CalendarEvent, User, DayTimeObject } from "../models/commons";
+import CreateEventMenu from "@/components/CreateEventMenu.vue";
+import type {
+  CalendarEvent,
+  User,
+  DayTimeObject,
+  EventEntity,
+  CalendarEventWithDayTimeObject,
+} from "../models/commons";
 
 export default Vue.extend({
   name: "CalendarView",
-  components: { DateTimePicker, EventDialog },
+  components: { DateTimePicker, EventDialog, CreateEventMenu },
   data: () => ({
     showEventMenu: false,
     type: "week",
@@ -136,17 +124,6 @@ export default Vue.extend({
       "Novembre",
       "Décembre",
     ],
-    eventMenu: {
-      startDate: new Date(),
-      endDate: new Date(),
-      summary: "",
-      description: "",
-    },
-    selectedSlot: {
-      date: new Date().toISOString().substr(0, 10),
-      hour: 0,
-      minute: 0,
-    },
     nbOfEventsInDB: 0,
     selectedElement: null as EventTarget | null,
     currentEvent: {
@@ -154,9 +131,10 @@ export default Vue.extend({
       name: "",
       start: new Date(),
       end: new Date(),
+      description: "",
       color: "primary",
       timed: true,
-    },
+    } as CalendarEvent,
     showEventDialog: false,
     allUsers: [] as User[],
     selectedUser: {} as User,
@@ -168,209 +146,135 @@ export default Vue.extend({
     this.fetchEvents();
     this.fetchUsers();
   },
-  computed: {
-    userName() {
-      return window.localStorage.getItem("username");
-    },
-  },
   methods: {
+    // Format month selected in date picker to display above the calendar
     selectedMonth() {
       const month = this.selectedDate.getMonth();
       return this.monthNames[month] + " " + this.selectedDate.getFullYear();
     },
+    // Clear local storage and redirect to register page
     logOut() {
       this.$store.commit("user/resetState");
       this.$router.push({ path: "/" });
     },
-    handleEvent(selectedSlot: DayTimeObject) {
-      console.log("HANDLE EVENT : ", selectedSlot);
+    // Handles click depending on where the user click : on an empty slot or on an event
+    handleClick(selectedSlot: DayTimeObject) {
+      // the user selected an existing event, @click:event is already handling it
+      if (this.showEventDialog) {
+        return;
+      }
+
       // the user clicked oustide the Event Menu while it was open
       if (this.showEventMenu) {
-        if (this.nbOfEventsInDB < this.events.length) {
-          this.events.pop();
-          this.currentEvent = {
-            id: "",
-            name: "",
-            start: new Date(),
-            end: new Date(),
-            color: "primary",
-            timed: true,
-          };
-        }
+        this.deletePreviewEvent();
+        this.resetCurrentEvent();
         this.showEventMenu = false;
         this.selectedElement = null;
         return;
       }
 
-      // the user selected an existing event
-      if (
-        selectedSlot.nativeEvent?.target &&
-        selectedSlot.nativeEvent?.target instanceof HTMLElement &&
-        Array.from(selectedSlot.nativeEvent?.target.classList).find(
-          (item: string) => item.startsWith("v-event")
-        )
-      ) {
-        return;
-
-        // the user selected an intervall to create a new event
-      } else {
-        this.selectedElement = selectedSlot.nativeEvent.target;
-        if (this.nbOfEventsInDB < this.events.length) {
-          this.events.pop();
-          this.currentEvent = {
-            id: "",
-            name: "",
-            start: new Date(),
-            end: new Date(),
-            color: "primary",
-            timed: true,
-          };
-        }
-        this.selectedSlot = selectedSlot;
-        let date = new Date(selectedSlot.date);
-        const startDate = new Date(
-          date.setHours(selectedSlot.hour, selectedSlot.minute < 30 ? 0 : 30, 0)
-        );
-        const endDate = new Date(date.setHours(date.getHours() + 1));
-        const currentEvent = {
-          id: "",
-          name: "",
-          color: "primary",
-          start: startDate,
-          end: endDate,
-          timed: true,
-        };
-        this.events.push(currentEvent);
-        this.currentEvent = currentEvent;
-        this.openEventMenu();
-      }
+      // the user selected an empty slot to create a new event
+      this.selectedElement = selectedSlot.nativeEvent.target; // attach menu to event selected (activator)
+      const date = new Date(selectedSlot.date);
+      const startDate = new Date(
+        date.setHours(selectedSlot.hour, selectedSlot.minute < 30 ? 0 : 30, 0)
+      );
+      const endDate = new Date(date.setHours(date.getHours() + 1));
+      const currentEvent = {
+        id: "",
+        name: "",
+        start: startDate,
+        end: endDate,
+        description: "",
+        color: "primary",
+        timed: true,
+      };
+      this.events.push(currentEvent); // add event waiting to be filled to display a preview
+      this.currentEvent = currentEvent;
+      this.showEventMenu = true; // open Menu to add further informations on event (sumarry, description)
     },
-    openEventMenu() {
+    // The user clicked on the button to create an event
+    openEventMenu(pointerEvent: PointerEvent) {
+      this.selectedElement = pointerEvent.target;
       this.showEventMenu = true;
     },
+    // retrieve all events of the user connected
     async fetchEvents() {
       try {
-        const result = await axios.get("http://localhost:3000/events");
-        this.events = result.data.map((event: any) => {
-          return {
-            id: event.id,
-            name: event.summary,
-            start: new Date(event.startDate),
-            end: new Date(event.endDate),
-            color: "primary",
-            timed: true,
-          };
+        const response = await axios.get("/events");
+        this.events = response.data.map((event: EventEntity) => {
+          return this.fromEventEntityToCalendarEvent(event, "primary");
         });
         this.nbOfEventsInDB = this.events.length;
       } catch (error) {
         console.error(error);
       }
     },
-    async createEvent() {
-      try {
-        this.eventMenu.startDate = this.currentEvent.start;
-        this.eventMenu.endDate = this.currentEvent.end;
-        const result = await axios.post(
-          "http://localhost:3000/events",
-          this.eventMenu
-        );
-        const currentEvent = result.data;
-        if (this.nbOfEventsInDB < this.events.length) {
-          this.events.pop(); // remove fake event to display // marche que si on a pas cliqué sur le bouton créer un événement
-        }
-        this.events.push({
-          id: currentEvent.id,
-          name: currentEvent.summary,
-          start: new Date(currentEvent.startDate),
-          end: new Date(currentEvent.endDate),
-          color: "primary",
-          timed: true,
-        });
-        this.nbOfEventsInDB += 1;
-        this.showEventMenu = false;
-        this.selectedElement = null;
-        this.eventMenu = {
-          startDate: new Date(),
-          endDate: new Date(),
-          summary: "",
-          description: "",
-        };
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    onClickOutside() {
-      console.log("onClickOutside");
-      this.showEventMenu = false;
-      this.selectedElement = null;
-      this.eventMenu = {
-        startDate: new Date(),
-        endDate: new Date(),
-        summary: "",
-        description: "",
-      };
-      if (this.nbOfEventsInDB < this.events.length) {
-        this.events.pop();
-      }
-      console.log("EVENTS : ", this.events);
-    },
-    closeEventMenu() {
-      this.showEventMenu = false;
-      this.eventMenu = {
-        startDate: new Date(),
-        endDate: new Date(),
-        summary: "",
-        description: "",
-      };
-      if (this.nbOfEventsInDB < this.events.length) {
-        this.events.pop();
-      }
-    },
-    updateNewEventStart(date: Date) {
-      this.currentEvent.start = date;
-    },
-    updateNewEventEnd(date: Date) {
-      this.currentEvent.end = date;
-    },
-    openEventDialog(selectedEvent: any) {
-      console.log("event in dialog : ", event);
+    openEventDialog(selectedEvent: CalendarEventWithDayTimeObject) {
       this.currentEvent = selectedEvent.event;
       this.showEventDialog = true;
     },
+    // retrieve all users in DB
     async fetchUsers() {
       try {
-        const result = await axios.get("http://localhost:3000/users");
-        this.allUsers = result.data;
+        const response = await axios.get("/users");
+        this.allUsers = response.data;
       } catch (error) {
         console.error(error);
       }
     },
-    selectUser(user: User) {
+    // retrieve events of a selected user;
+    async fetchEventsOfUser(user: User) {
       this.selectedUser = user;
-      this.fetchEventsForUser(user.id);
-    },
-    async fetchEventsForUser(userId: string) {
       try {
-        const result = await axios.get(
-          "http://localhost:3000/events?userId=" + userId
-        );
-        this.events = result.data.map((event: any) => {
-          return {
-            id: event.id,
-            name: event.summary,
-            start: new Date(event.startDate),
-            end: new Date(event.endDate),
-            color: "secondary",
-            timed: true,
-          };
+        const response = await axios.get(`/events?userId=${user.id}`);
+        this.events = response.data.map((event: EventEntity) => {
+          return this.fromEventEntityToCalendarEvent(event, "secondary");
         });
       } catch (error) {
         console.error(error);
       }
     },
+    setShowEventMenu(value: boolean) {
+      this.showEventMenu = value;
+    },
+    updateNbOfEventsInDB(value: number) {
+      this.nbOfEventsInDB = value;
+    },
+    fromEventEntityToCalendarEvent(
+      event: EventEntity,
+      color: string
+    ): CalendarEvent {
+      return {
+        id: event.id ?? "",
+        name: event.summary,
+        start: new Date(event.startDate),
+        end: new Date(event.endDate),
+        description: event.description,
+        color: color,
+        timed: true,
+      };
+    },
+    // stop displaying a preview when there is one
+    deletePreviewEvent() {
+      if (this.nbOfEventsInDB < this.events.length) {
+        this.events.pop();
+      }
+    },
+    resetCurrentEvent() {
+      this.currentEvent = {
+        id: "",
+        name: "",
+        start: new Date(),
+        end: new Date(),
+        description: "",
+        color: "primary",
+        timed: true,
+      };
+    },
   },
   watch: {
-    picker(newValue, olValue) {
+    picker(newValue) {
       this.selectedDate = new Date(newValue);
     },
   },

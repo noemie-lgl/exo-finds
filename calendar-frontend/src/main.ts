@@ -15,6 +15,8 @@ const vuetify = new Vuetify();
 
 Vue.use(Vuetify);
 
+axios.defaults.baseURL = "http://localhost:3000";
+
 const accessToken = localStorage.getItem("acces_token");
 if (accessToken) {
   axios.defaults.headers.common["Authorization"] = "Bearer " + accessToken;

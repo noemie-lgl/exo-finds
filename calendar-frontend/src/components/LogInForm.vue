@@ -41,6 +41,7 @@
 import Vue from "vue";
 import axios from "axios";
 
+// This component allows a user to authenticate themself
 export default Vue.extend({
   name: "LogInForm",
   data: function () {
@@ -52,6 +53,7 @@ export default Vue.extend({
     };
   },
   methods: {
+    // authenticate user and store access token then redirect to calendar view
     async logIn() {
       this.loading = true;
       try {
@@ -60,16 +62,11 @@ export default Vue.extend({
           password: this.password,
         };
 
-        const auth = await axios.post(
-          "http://localhost:3000/auth/login",
-          payload
-        );
+        const auth = await axios.post("/auth/login", payload);
 
         this.$store.commit("user/setUser", this.username);
         this.$store.commit("user/setAccessToken", auth.data.access_token);
         this.$router.push({ path: "/calendar" });
-
-        console.log("WE ARE authenticated : ", auth);
       } catch (error) {
         console.error(error);
       } finally {

@@ -35,16 +35,9 @@
 import axios from "axios";
 import Vue from "vue";
 import DateTimePicker from "./DateTimePicker.vue";
+import type { CalendarEvent } from "../models/commons";
 
-declare interface CalendarEvent {
-  id: string;
-  name: string;
-  start: Date;
-  end: Date;
-  color: string;
-  timed: boolean;
-}
-
+// This dialog allows the user to update or delete an event selected in the calendar
 export default Vue.extend({
   name: "EventDialog",
   components: { DateTimePicker },
@@ -54,7 +47,7 @@ export default Vue.extend({
       required: true,
     },
     selectedEvent: {
-      type: Object,
+      type: Object as () => CalendarEvent,
       required: true,
     },
   },
@@ -65,22 +58,21 @@ export default Vue.extend({
   },
   computed: {
     showDialog() {
-      console.log("this event : ", this.updatedEvent);
       return this.showEventDialog;
     },
   },
   methods: {
+    // use custom event sent by child component DateTimePicker to update beginning date
     updateNewEventStart(date: Date) {
       this.updatedEvent.start = date;
     },
+    // use custom event sent by child component DateTimePicker to update end date
     updateNewEventEnd(date: Date) {
       this.updatedEvent.end = date;
     },
     async deleteEvent() {
       try {
-        await axios.delete(
-          "http://localhost:3000/events/" + this.updatedEvent.id
-        );
+        await axios.delete("/events/" + this.updatedEvent.id);
         this.$emit("event-deleted");
         this.$emit("close-event-dialog");
       } catch (error) {
@@ -90,23 +82,24 @@ export default Vue.extend({
     async updateEvent() {
       try {
         const payload = {
-          description: "test",
-        }; // pas terminé
-        await axios.put(
-          "http://localhost:3000/events/" + this.updatedEvent.id,
-          payload
-        );
+          startDate: this.updatedEvent.start,
+          endDate: this.updatedEvent.end,
+          summary: this.updatedEvent.name,
+          description: this.updatedEvent.description,
+        };
+        await axios.put("/events/" + this.updatedEvent.id, payload);
         this.$emit("close-event-dialog");
       } catch (error) {
         console.error(error);
       }
     },
+    // notify parent component (CalendarView) that user closed the event dialog
     closeDialog() {
       this.$emit("close-event-dialog");
     },
   },
   watch: {
-    selectedEvent(newValue, oldValue) {
+    selectedEvent(newValue) {
       this.updatedEvent = newValue;
     },
   },

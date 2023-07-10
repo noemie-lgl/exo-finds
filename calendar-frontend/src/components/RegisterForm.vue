@@ -67,6 +67,7 @@
 import Vue from "vue";
 import axios from "axios";
 
+// This component allows a user to create an account
 export default Vue.extend({
   name: "RegisterForm",
   data: function () {
@@ -83,39 +84,33 @@ export default Vue.extend({
     };
   },
   methods: {
+    // create user in DB, authenticate them and keep access token then redirect to calendar view
     async register() {
       this.loading = true;
       try {
-        const newUser = await axios.post(
-          "http://localhost:3000/users",
-          this.user
-        );
+        const newUser = await axios.post("/users", this.user);
 
         const payload = {
           username: newUser.data.username,
           password: this.user.password,
         };
 
-        const auth = await axios.post(
-          "http://localhost:3000/auth/login",
-          payload
-        );
+        const auth = await axios.post("/auth/login", payload);
 
         this.$store.commit("user/setUser", newUser.data.username);
         this.$store.commit("user/setAccessToken", auth.data.access_token);
         this.$router.push({ path: "/calendar" });
-
-        console.log("WE ARE authenticated : ", auth);
       } catch (error) {
         console.error(error);
       } finally {
         this.loading = false;
       }
     },
+    // check if the username added in the form already exists in the DB
     async checkUsernameAvailability() {
       try {
         const response = await axios.get(
-          `http://localhost:3000/users/username-exists?username=${this.user.username}`
+          `/users/username-exists?username=${this.user.username}`
         );
         if (response.data.id) this.usernameExists = true;
         else this.usernameExists = false;
@@ -123,11 +118,13 @@ export default Vue.extend({
         console.error(error);
       }
     },
+    // display custom error message when the username already exist in DB
     customErrorMessage() {
       if (this.usernameExists) {
         return ["Ce nom d'utilisateur est déjà pris"];
       }
     },
+    // the user already has an account
     redirectToLogin() {
       this.$router.push({ path: "/login" });
     },

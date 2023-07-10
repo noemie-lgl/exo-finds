@@ -1,8 +1,20 @@
+export interface RootState {
+  username: string;
+}
+
+export interface EventEntity {
+  id?: string;
+  startDate: Date;
+  endDate: Date;
+  summary: string;
+  description: string;
+}
 export interface CalendarEvent {
-  id: string;
+  id?: string;
   name: string;
   start: Date;
   end: Date;
+  description: string;
   color: string;
   timed: boolean;
 }
@@ -11,6 +23,11 @@ export interface User {
   id: string;
   firstName: string;
   lastName: string;
+}
+
+export interface CalendarEventWithDayTimeObject {
+  event: CalendarEvent;
+  day: DayTimeObject;
 }
 
 export interface DayTimeObject {
