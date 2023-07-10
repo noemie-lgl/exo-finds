@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Event } from '../events/event.entity';
 
 @Controller('users')
 export class UsersController {
@@ -14,10 +15,18 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  // to check wether a username already exists
+  @Public()
+  @Get('username-exists')
+  async findOneWithUsername(@Query('username') username: string): Promise<User> {
+    const user = await this.usersService.findOneByUsername(username);
+    return user;
+  }
+
   //get user by id
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     } else {
@@ -45,7 +54,7 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<any> {
     //handle error if user does not exist
-    const user = await this.usersService.findOne(id);
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException('User does not exist!');
     }

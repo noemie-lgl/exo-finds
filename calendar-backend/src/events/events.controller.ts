@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, NotFoundException, Request, Query } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Event } from './event.entity';
 
@@ -6,11 +6,14 @@ import { Event } from './event.entity';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  //get all events depending on who is asking
+  //get all events
   @Get()
-  async findAllForOneUser(@Request() req): Promise<Event[]> {
-    const userId = req.user.id;
-    return this.eventsService.findAllForOneUser(userId);
+  async findAllForOneUser(@Request() req, @Query('userId') userId?: string): Promise<Event[]> {
+    if (userId) { // a userId is specified, we retrieve all events linked to this userId
+      return this.eventsService.findAllForOneUser(userId);
+    } else { // a userId is not specified, the user retrieve all events linked to themself
+      return this.eventsService.findAllForOneUser(req.user.id);
+    }
   }
 
   //get event by id

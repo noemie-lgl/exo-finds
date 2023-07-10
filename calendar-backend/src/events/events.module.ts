@@ -13,6 +13,7 @@ import { UsersService } from 'src/users/users.service';
   controllers: [EventsController],
   providers: [
     EventsService
-  ]
+  ],
+  exports: [EventsService]
 })
 export class EventsModule {}

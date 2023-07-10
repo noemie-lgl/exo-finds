@@ -9,7 +9,7 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private eventRepository: Repository<Event>,
-    @Inject(UsersService) private userService: UsersService
+    @Inject(UsersService) private usersService: UsersService
   ) {}
 
   async findAllForOneUser(userId: string): Promise<Event[]> {
@@ -24,7 +24,7 @@ export class EventsService {
   }
 
   async create(event: Partial<Event>, userId: string): Promise<Event> {
-    const user = await this.userService.findOne(userId);
+    const user = await this.usersService.findOneById(userId);
     const newEvent = new Event({
       ...event,
       user: user

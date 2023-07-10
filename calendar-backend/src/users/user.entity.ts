@@ -12,6 +12,9 @@ export class User {
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
     updatedAt: Date;
 
+    @Column({type: 'varchar', length: 255, unique: true})
+    username: string;
+
     @Column({type: 'varchar', length: 255})
     firstName: string;
 
